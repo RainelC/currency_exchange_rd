@@ -1,0 +1,12 @@
+# Time
+schedule==1.2.2
+
+# HTTP/Web Scrapping 
+requests
+beautifulsoup4 4.14.3
+
+# Database
+cloudflare==4.3.1
+
+# Env
+python-dotenv==1.2.1

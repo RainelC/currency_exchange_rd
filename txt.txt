@@ -1,0 +1,10 @@
+use pytest = https://docs.pytest.org/en/stable/
+use ruff = https://docs.astral.sh/ruff/formatter/#quotes
+use mypy = https://mypy.readthedocs.io/en/stable/
+https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
+https://bubthegreat.medium.com/stop-using-the-root-logger-in-python-1183bd89f4dd
+
+
+///ver si sale a cuenta hacerlo con Python Workers o en el server
+https://developers.cloudflare.com/workers/languages/python/
+https://developers.cloudflare.com/d1/examples/query-d1-from-python-workers/
