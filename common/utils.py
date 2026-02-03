@@ -1,9 +1,7 @@
 import logging
 import requests
 from bs4 import BeautifulSoup
- 
-##--- Format: {"company_name": {"currency": {'buyingRate': $$.$, 'sellingRate': $$.$}, ...} ---##
-currencies_exchange_rates = {}
+from data.json import CurrencyExchangeRatesJSON as json
 
 # Config logging
 logging.basicConfig(level=logging.DEBUG)
@@ -29,9 +27,8 @@ def scraper(search:list, tag:str, url:str, findByclass_: bool = False, getAttrsV
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
     }
     
-    session.get(url, headers=headers)
-    
     page = session.get(url, headers=headers)
+
     if page.status_code != 200:
         return {'status_code': page.status_code, 'message': page.content}
     soup = BeautifulSoup(page.content, "html.parser")
@@ -78,26 +75,6 @@ def process_exchange_rates_data_scraped(data: dict, company_name: str, param_sea
             selling = 0
             buying = 0
 
-def get_currency_exchange_rates_api(url:str): ## fdsafsaf
-    res = requests.get(url)
-    if res.status_code != 200: 
-        logging.error(f'Failed to fetch data from API with status code {res.status_code} and message: {res.content}')
-        return res.content
-
-    data = res.json()['data']
-    for currency in data:
-        currency_name = currency['coinName']
-        if (currency_name != 'DOLAR EE.UU' and currency_name != 'EURO'): continue
-
-        currency_name = 'USD' if currency_name == 'DOLAR EE.UU' else 'EUR'
-
-        add_currency(
-            'Vimenca',
-            currency_name,
-            currency['purchaseValue'],
-            currency['saleValue']
-        )
-
 
 ##-------------- Manage currency data --------------##
 
@@ -114,15 +91,17 @@ def add_currency(company_name: str, currency: str, buying_rate: float = 0, selli
     :param selling_rate: Description
     :type selling_rate: float
     """
-    if company_name not in currencies_exchange_rates:
-        currencies_exchange_rates[company_name] = {}
+    json.load_data_json()
+    if company_name not in json.currencies_exchange_rates:
+        json.currencies_exchange_rates[company_name] = {}
  
-    currency_list = currencies_exchange_rates[company_name]
-    currency_list[currency] = { 'buyingRate': buying_rate, 'sellingRate': selling_rate }
+    currency_list = json.currencies_exchange_rates[company_name]
+    currency_list[currency] = { 'buyingRate': float(buying_rate), 'sellingRate': float(selling_rate) }
+    json.save_data_json()
  
 def show_exchange_rates() -> None:
-    for i in currencies_exchange_rates:
-        exchange = currencies_exchange_rates[i]
+    for i in json.currencies_exchange_rates:
+        exchange = json.currencies_exchange_rates[i]
         USD={}
         EUR={}
  
