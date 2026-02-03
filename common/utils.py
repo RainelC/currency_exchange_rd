@@ -28,15 +28,17 @@ def scraper(search:list, tag:str, url:str, findByclass_: bool = False, getAttrsV
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
     }
-    
-    session.get(url, headers=headers)
-    
+    logging.info(f'Scraping {url}')
     page = session.get(url, headers=headers)
     if page.status_code != 200:
+        logging.error(f'Error: {page.status_code}')
         return {'status_code': page.status_code, 'message': page.content}
+
+    logging.info(f'Scraping {url} finished')
     soup = BeautifulSoup(page.content, "html.parser")
     soup.find_all('tr')
     result = {}
+    logging.info('Searching for values')
     for key in search:
         """
         soup.find("div", class_="my-class") revisar si puedo ponerlo así y quitar el if
@@ -46,7 +48,7 @@ def scraper(search:list, tag:str, url:str, findByclass_: bool = False, getAttrsV
         value = soup.find_all(tag, class_=key) if findByclass_ else soup.find_all(tag, id=key)
         if(value != []): 
             result[key] = value[0].attrs if getAttrsValues else value[0].text
- 
+    logging.info('Values found')
     return result
 
 def process_exchange_rates_data_scraped(data: dict, company_name: str, param_search: list, usd_index:str = 'us') -> None:
@@ -64,6 +66,7 @@ def process_exchange_rates_data_scraped(data: dict, company_name: str, param_sea
     """
     selling = 0
     buying = 0
+    logging.info(f'Processing exchange rates for {company_name}')
     for currency in data:
         currency_name = 'USD' if currency.lower().count(usd_index.lower()) != 0  else "EUR"
         selling = data[currency] if currency.count(param_search[0]) != 0 else selling
@@ -77,6 +80,7 @@ def process_exchange_rates_data_scraped(data: dict, company_name: str, param_sea
             )
             selling = 0
             buying = 0
+    logging.info(f'Exchange rates processed for {company_name}')
 
 def get_currency_exchange_rates_api(url:str): ## fdsafsaf
     res = requests.get(url)
@@ -114,11 +118,16 @@ def add_currency(company_name: str, currency: str, buying_rate: float = 0, selli
     :param selling_rate: Description
     :type selling_rate: float
     """
-    if company_name not in currencies_exchange_rates:
-        currencies_exchange_rates[company_name] = {}
+    json.load_data_json()
+
+    logging.info(f'Adding currency {currency} to {company_name}')
+    if company_name not in json.currencies_exchange_rates:
+        json.currencies_exchange_rates[company_name] = {}
  
-    currency_list = currencies_exchange_rates[company_name]
-    currency_list[currency] = { 'buyingRate': buying_rate, 'sellingRate': selling_rate }
+    currency_list = json.currencies_exchange_rates[company_name]
+    currency_list[currency] = { 'buyingRate': float(buying_rate), 'sellingRate': float(selling_rate) }
+    json.save_data_json()
+    logging.info(f'Currency {currency} added to {company_name}')
  
 def show_exchange_rates() -> None:
     for i in currencies_exchange_rates:
