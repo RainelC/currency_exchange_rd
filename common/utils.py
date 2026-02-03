@@ -1,10 +1,13 @@
 import logging
 import requests
 from bs4 import BeautifulSoup
-from data.json import CurrencyExchangeRatesJSON as json
+from data.json import CurrencyExchangeRatesJSON 
 
+ 
 # Config logging
 logging.basicConfig(level=logging.DEBUG)
+
+json = CurrencyExchangeRatesJSON()
 
 def scraper(search:list, tag:str, url:str, findByclass_: bool = False, getAttrsValues: bool = False):
     """
