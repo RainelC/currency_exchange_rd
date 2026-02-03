@@ -9,7 +9,7 @@ class CurrencyExchangeRatesJSON:
     def __init__(self):
         self.currencies_exchange_rates: dict = {} 
         self.file_name : str = 'currency_exchange_rates.json'
-        self.file_path : str = 'data/' + self.file_name
+        self.file_path : str = '/var/www/currencies/' + self.file_name
 
     def save_data_json(self) -> None:
         logging.info(f'Saving data to JSON file: {self.file_name}')
