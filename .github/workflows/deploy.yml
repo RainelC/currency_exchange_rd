@@ -1,0 +1,26 @@
+name: Continuous Deployment
+
+on:
+  release:
+    types: [published] 
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Desplegar vía SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22 
+          script: |
+            cd /root/projects/currency_exchange_rd/
+            ##
+            git pull origin main
+            ##
+            source venv/bin/activate && pip install -r requirements.txt
