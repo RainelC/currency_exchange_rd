@@ -1,14 +1,15 @@
 import logging
 import requests
 from bs4 import BeautifulSoup
- 
-##--- Format: {"company_name": {"currency": {'buyingRate': $$.$, 'sellingRate': $$.$}, ...} ---##
-currencies_exchange_rates = {}
+from data.json import CurrencyExchangeRatesJSON 
 
+ 
 # Config logging
 logging.basicConfig(level=logging.DEBUG)
 
-def scraper(search:list, tag:str, url:str, findByclass_: bool = False, getAttrsValues: bool = False):
+json = CurrencyExchangeRatesJSON()
+
+def scraper(search:list, tag:str, url:str, findByclass_: bool = False, getAttrsValues: bool = False, re:str = None):
     """
     Docstring for scraper
     
@@ -28,30 +29,24 @@ def scraper(search:list, tag:str, url:str, findByclass_: bool = False, getAttrsV
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
     }
-    logging.info(f'Scraping {url}')
+    
     page = session.get(url, headers=headers)
+    
     if page.status_code != 200:
-        logging.error(f'Error: {page.status_code}')
         return {'status_code': page.status_code, 'message': page.content}
-
-    logging.info(f'Scraping {url} finished')
     soup = BeautifulSoup(page.content, "html.parser")
     soup.find_all('tr')
     result = {}
-    logging.info('Searching for values')
+    indentificator = 'id'
+    if findByclass_: indentificator = 'class'
     for key in search:
-        """
-        soup.find("div", class_="my-class") revisar si puedo ponerlo así y quitar el if
-        # or
-        soup.find("input", {"id": "nm"})
-        """
-        value = soup.find_all(tag, class_=key) if findByclass_ else soup.find_all(tag, id=key)
+        value = soup.find(tag, {indentificator: key})
         if(value != []): 
-            result[key] = value[0].attrs if getAttrsValues else value[0].text
-    logging.info('Values found')
+            result[key] = value.attrs if getAttrsValues else value.text
+ 
     return result
 
-def process_exchange_rates_data_scraped(data: dict, company_name: str, param_search: list, usd_index:str = 'us') -> None:
+def process_exchange_rates_data_scraped(data: dict, company_name: str, param_search: list, usd_index:str = 'us', only_buy: bool = False) -> None:
     """
     Process exchange rates for scraped data.
     
@@ -66,12 +61,14 @@ def process_exchange_rates_data_scraped(data: dict, company_name: str, param_sea
     """
     selling = 0
     buying = 0
-    logging.info(f'Processing exchange rates for {company_name}')
     for currency in data:
         currency_name = 'USD' if currency.lower().count(usd_index.lower()) != 0  else "EUR"
-        selling = data[currency] if currency.count(param_search[0]) != 0 else selling
-        buying = data[currency] if currency.count(param_search[1]) != 0 else buying
-        if(selling != 0 and buying != 0):
+        if(only_buy):
+            buying = data[currency] if currency.lower().count(param_search[0].lower()) != 0 else buying
+        else:
+            selling = data[currency] if currency.lower().count(param_search[0].lower()) != 0 else selling
+            buying = data[currency] if currency.lower().count(param_search[1].lower()) != 0 else buying
+        if((selling != 0 and buying != 0) or (buying != 0 and only_buy)):
             add_currency(
                 company_name,
                 currency_name,
@@ -80,27 +77,6 @@ def process_exchange_rates_data_scraped(data: dict, company_name: str, param_sea
             )
             selling = 0
             buying = 0
-    logging.info(f'Exchange rates processed for {company_name}')
-
-def get_currency_exchange_rates_api(url:str): ## fdsafsaf
-    res = requests.get(url)
-    if res.status_code != 200: 
-        logging.error(f'Failed to fetch data from API with status code {res.status_code} and message: {res.content}')
-        return res.content
-
-    data = res.json()['data']
-    for currency in data:
-        currency_name = currency['coinName']
-        if (currency_name != 'DOLAR EE.UU' and currency_name != 'EURO'): continue
-
-        currency_name = 'USD' if currency_name == 'DOLAR EE.UU' else 'EUR'
-
-        add_currency(
-            'Vimenca',
-            currency_name,
-            currency['purchaseValue'],
-            currency['saleValue']
-        )
 
 
 ##-------------- Manage currency data --------------##
@@ -125,13 +101,21 @@ def add_currency(company_name: str, currency: str, buying_rate: float = 0, selli
         json.currencies_exchange_rates[company_name] = {}
  
     currency_list = json.currencies_exchange_rates[company_name]
-    currency_list[currency] = { 'buyingRate': float(buying_rate), 'sellingRate': float(selling_rate) }
+    if currency not in currency_list:
+        currency_list[currency] = {}
+
+    if(buying_rate != 0):    
+        currency_list[currency]['buyingRate'] = float(buying_rate)
+    if(selling_rate != 0):
+        currency_list[currency]['sellingRate'] = float(selling_rate)
+
     json.save_data_json()
     logging.info(f'Currency {currency} added to {company_name}')
  
 def show_exchange_rates() -> None:
-    for i in currencies_exchange_rates:
-        exchange = currencies_exchange_rates[i]
+    json.load_data_json()
+    for i in json.currencies_exchange_rates:
+        exchange = json.currencies_exchange_rates[i]
         USD={}
         EUR={}
  
@@ -144,6 +128,10 @@ def show_exchange_rates() -> None:
         print(f"{i}:", end=" ")
 
         if USD !=  {}:
-            print(f"Dolar: Compra: {USD["buyingRate"]} Vende {USD["sellingRate"]}" , end=" ")
+           for key in USD:
+                print(f"Dolar: {key}: {USD[key]}", end=" ")
         if EUR != {}:
-            print(f"Euro: Compra: {EUR["buyingRate"]} Vende {EUR["sellingRate"]}")
+            for key in EUR:
+                print(f"Euro: {key}: {EUR[key]}", end=" ")
+        print('')
+
