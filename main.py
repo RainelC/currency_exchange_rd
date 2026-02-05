@@ -11,6 +11,7 @@ from scrapers.reservas import get_currency_exchange_rates_reservas
 from scrapers.caribe_express import get_currency_exchange_rates_caribe_express
 from scrapers.aln import get_currency_exchange_rates_aln
 from common.utils import show_exchange_rates
+from scrapers.scotiabank import get_currency_exchange_rates_scotiabank
 
 import logging
  
@@ -37,6 +38,7 @@ def main() -> None:
     get_currency_exchange_rates_banesco() 
     get_currency_exchange_rates_aln()
     get_currency_exchange_rates_caribe_express()
+    get_currency_exchange_rates_scotiabank()
     show_exchange_rates()
     logging.info('[INFO] Currency exchange rates scrapers finished')
 
