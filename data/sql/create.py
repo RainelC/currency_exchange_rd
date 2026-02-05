@@ -1,22 +1,20 @@
 company_table = """
     CREATE TABLE company ( 
         Id INTEGER, 
-        Name TEXT, 
-        Site TEXT, 
-        Logo TEXT ##could be a BLOD
+        company_name TEXT, 
+        website TEXT, 
+        Logo TEXT
     )
 """
 
-currency_table = """
-    CREATE TABLE currency ( 
-        Id INTEGER, 
-        Name Varchar(255), 
-        Prefix varchar(255)
+currency_exchange_table = """
+    CREATE TABLE currency_exchange (
+        Id INTEGER,
+        Company_id INTEGER REFERENCES company(Id),
+        Currency_name TEXT, 
+        Currency_prefix TEXT
+        Buying_rate REAL,
+        Selling_rate REAL,
+        Date_created TEXT
     )
-"""
-
-currency_exchange = """
-    ID INTEGER,
-    Company_id INTEGER REFERENCES company(id),
-    currency_id INTEGER REFERENCES currency(id),
 """
