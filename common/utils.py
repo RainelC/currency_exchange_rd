@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 json = CurrencyExchangeRatesJSON()
 
-def scraper(search:list, tag:str, url:str, findByclass_: bool = False, getAttrsValues: bool = False):
+def scraper(search:list, tag:str, url:str, findByclass_: bool = False, getAttrsValues: bool = False, re:str = None):
     """
     Docstring for scraper
     
@@ -31,25 +31,22 @@ def scraper(search:list, tag:str, url:str, findByclass_: bool = False, getAttrsV
     }
     
     page = session.get(url, headers=headers)
-
+    
     if page.status_code != 200:
         return {'status_code': page.status_code, 'message': page.content}
     soup = BeautifulSoup(page.content, "html.parser")
     soup.find_all('tr')
     result = {}
+    indentificator = 'id'
+    if findByclass_: indentificator = 'class'
     for key in search:
-        """
-        soup.find("div", class_="my-class") revisar si puedo ponerlo así y quitar el if
-        # or
-        soup.find("input", {"id": "nm"})
-        """
-        value = soup.find_all(tag, class_=key) if findByclass_ else soup.find_all(tag, id=key)
+        value = soup.find(tag, {indentificator: key})
         if(value != []): 
-            result[key] = value[0].attrs if getAttrsValues else value[0].text
+            result[key] = value.attrs if getAttrsValues else value.text
  
     return result
 
-def process_exchange_rates_data_scraped(data: dict, company_name: str, param_search: list, usd_index:str = 'us') -> None:
+def process_exchange_rates_data_scraped(data: dict, company_name: str, param_search: list, usd_index:str = 'us', only_buy: bool = False) -> None:
     """
     Process exchange rates for scraped data.
     
@@ -66,9 +63,12 @@ def process_exchange_rates_data_scraped(data: dict, company_name: str, param_sea
     buying = 0
     for currency in data:
         currency_name = 'USD' if currency.lower().count(usd_index.lower()) != 0  else "EUR"
-        selling = data[currency] if currency.count(param_search[0]) != 0 else selling
-        buying = data[currency] if currency.count(param_search[1]) != 0 else buying
-        if(selling != 0 and buying != 0):
+        if(only_buy):
+            buying = data[currency] if currency.lower().count(param_search[0].lower()) != 0 else buying
+        else:
+            selling = data[currency] if currency.lower().count(param_search[0].lower()) != 0 else selling
+            buying = data[currency] if currency.lower().count(param_search[1].lower()) != 0 else buying
+        if((selling != 0 and buying != 0) or (buying != 0 and only_buy)):
             add_currency(
                 company_name,
                 currency_name,
@@ -95,14 +95,25 @@ def add_currency(company_name: str, currency: str, buying_rate: float = 0, selli
     :type selling_rate: float
     """
     json.load_data_json()
+
+    logging.info(f'Adding currency {currency} to {company_name}')
     if company_name not in json.currencies_exchange_rates:
         json.currencies_exchange_rates[company_name] = {}
  
     currency_list = json.currencies_exchange_rates[company_name]
-    currency_list[currency] = { 'buyingRate': float(buying_rate), 'sellingRate': float(selling_rate) }
+    if currency not in currency_list:
+        currency_list[currency] = {}
+
+    if(buying_rate != 0):    
+        currency_list[currency]['buyingRate'] = float(buying_rate)
+    if(selling_rate != 0):
+        currency_list[currency]['sellingRate'] = float(selling_rate)
+
     json.save_data_json()
+    logging.info(f'Currency {currency} added to {company_name}')
  
 def show_exchange_rates() -> None:
+    json.load_data_json()
     for i in json.currencies_exchange_rates:
         exchange = json.currencies_exchange_rates[i]
         USD={}
@@ -117,6 +128,10 @@ def show_exchange_rates() -> None:
         print(f"{i}:", end=" ")
 
         if USD !=  {}:
-            print(f"Dolar: Compra: {USD["buyingRate"]} Vende {USD["sellingRate"]}" , end=" ")
+           for key in USD:
+                print(f"Dolar: {key}: {USD[key]}", end=" ")
         if EUR != {}:
-            print(f"Euro: Compra: {EUR["buyingRate"]} Vende {EUR["sellingRate"]}")
+            for key in EUR:
+                print(f"Euro: {key}: {EUR[key]}", end=" ")
+        print('')
+
