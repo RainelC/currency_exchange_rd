@@ -8,6 +8,8 @@ from scrapers.banesco import get_currency_exchange_rates_banesco
 from scrapers.bdi import get_currency_exchange_rates_bdi
 from scrapers.caribe import get_currency_exchange_rates_caribe
 from scrapers.reservas import get_currency_exchange_rates_reservas
+from scrapers.caribe_express import get_currency_exchange_rates_caribe_express
+from scrapers.aln import get_currency_exchange_rates_aln
 from common.utils import show_exchange_rates
 
 import logging
@@ -27,12 +29,14 @@ def main() -> None:
     get_currency_exchange_rates_proamerica() 
     get_currency_exchange_rates_cibao() 
     get_currency_exchange_rates_reservas()
-    # get_currency_exchange_rates_vimenca()    
+    get_currency_exchange_rates_vimenca()    
     get_currency_exchange_rates_bsc() 
     get_currency_exchange_rates_caribe() 
     # get_currency_exchange_rates_popular() 
     get_currency_exchange_rates_bdi() 
     get_currency_exchange_rates_banesco() 
+    get_currency_exchange_rates_aln()
+    get_currency_exchange_rates_caribe_express()
     show_exchange_rates()
     logging.info('[INFO] Currency exchange rates scrapers finished')
 
