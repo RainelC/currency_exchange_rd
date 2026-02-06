@@ -11,6 +11,7 @@ from scrapers.reservas import get_currency_exchange_rates_reservas
 from scrapers.caribe_express import get_currency_exchange_rates_caribe_express
 from scrapers.aln import get_currency_exchange_rates_aln
 from scrapers.ademi import get_currency_exchange_rates_ademi
+from scrapers.qik import get_currency_exchange_rates_qik
 from common.utils import show_exchange_rates
 
 import logging
@@ -39,6 +40,7 @@ def main() -> None:
     get_currency_exchange_rates_aln()
     get_currency_exchange_rates_caribe_express()
     get_currency_exchange_rates_ademi()
+    get_currency_exchange_rates_qik()
     show_exchange_rates()
     logging.info('[INFO] Currency exchange rates scrapers finished')
 
