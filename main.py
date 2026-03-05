@@ -13,6 +13,7 @@ from scrapers.aln import get_currency_exchange_rates_aln
 from scrapers.ademi import get_currency_exchange_rates_ademi
 from scrapers.qik import get_currency_exchange_rates_qik
 from common.utils import show_exchange_rates
+from scrapers.scotiabank import get_currency_exchange_rates_scotiabank
 
 import logging
  
@@ -41,6 +42,7 @@ def main() -> None:
     get_currency_exchange_rates_caribe_express()
     get_currency_exchange_rates_ademi()
     get_currency_exchange_rates_qik()
+    get_currency_exchange_rates_scotiabank()
     show_exchange_rates()
     logging.info('[INFO] Currency exchange rates scrapers finished')
 
