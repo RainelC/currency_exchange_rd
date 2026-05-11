@@ -78,7 +78,3 @@ python main.py
 ## Disclaimer
 
 This tool is for informational purposes only. Exchange rates can change rapidly and may not reflect real-time values. Always verify with the respective financial institution before making any transactions. Respect website terms of service and avoid excessive requests to prevent blocking.
-
-## License
-
-[Specify license, e.g., MIT] - See LICENSE file for details.
